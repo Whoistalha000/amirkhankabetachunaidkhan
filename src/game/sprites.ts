@@ -301,8 +301,8 @@ export function drawInterior(ctx: CanvasRenderingContext2D, t: number) {
 
   // warm vignette light
   const rg = ctx.createRadialGradient(w / 2, 300, 60, w / 2, 400, 780);
-  rg.addColorStop(0, "rgba(255,214,150,0.30)");
-  rg.addColorStop(1, "rgba(60,30,15,0.42)");
+  rg.addColorStop(0, "rgba(255,206,140,0.10)");
+  rg.addColorStop(1, "rgba(48,22,10,0.52)");
   ctx.fillStyle = rg;
   ctx.fillRect(0, 0, w, h);
 }
