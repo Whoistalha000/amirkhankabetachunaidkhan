@@ -66,19 +66,23 @@ export default function GameCanvas({
   const keys = useRef<Record<string, boolean>>({});
   const lockout = useRef(0);
   const nearEnv = useRef(false);
+  const inDoorZone = useRef(true);
   const sceneRef = useRef<Scene>(scene);
   const pausedRef = useRef(paused);
   pausedRef.current = paused;
 
   // place actors when the scene changes (the meadow spawn is kept on first mount)
-  const mounted = useRef(false);
+  const lastScene = useRef<Scene | null>(null);
   useEffect(() => {
     sceneRef.current = scene;
-    lockout.current = 1.2;
+    lockout.current = 0.5;
     idle.current = 0;
     cat.current.sleeping = false;
-    if (!mounted.current) {
-      mounted.current = true;
+    inDoorZone.current = true;
+    if (lastScene.current === scene) return;
+    const first = lastScene.current === null;
+    lastScene.current = scene;
+    if (first) {
       cam.current.x = -1;
       return;
     }
@@ -205,20 +209,22 @@ export default function GameCanvas({
         }
       }
 
-      (window as unknown as Record<string, unknown>).__dbg = { x: p.x, y: p.y, sc, lock: lockout.current };
       /* ---- interactions ---- */
       if (sc === "outdoor") {
         const atDoor =
           Math.abs(p.x - DOOR.x) < DOOR.r && p.y > DOOR.y + 20 && p.y < DOOR.y + 230;
-        if (lockout.current <= 0 && atDoor) {
-          lockout.current = 2;
+        if (atDoor && !inDoorZone.current && lockout.current <= 0) {
+          lockout.current = 1;
           onDoor();
         }
+        inDoorZone.current = atDoor;
       } else {
-        if (lockout.current <= 0 && Math.hypot(p.x - EXIT_DOOR.x, p.y - EXIT_DOOR.y) < EXIT_DOOR.r) {
-          lockout.current = 2;
+        const atExit = Math.hypot(p.x - EXIT_DOOR.x, p.y - EXIT_DOOR.y) < EXIT_DOOR.r;
+        if (atExit && !inDoorZone.current && lockout.current <= 0) {
+          lockout.current = 1;
           onExit();
         }
+        inDoorZone.current = atExit;
         const near = Math.hypot(p.x - ENVELOPE.x, p.y - (ENVELOPE.y + 90)) < ENVELOPE.r + 40;
         if (near !== nearEnv.current) {
           nearEnv.current = near;
