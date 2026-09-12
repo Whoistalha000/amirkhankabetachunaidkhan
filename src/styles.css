@@ -59,6 +59,29 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-story-night: var(--story-night);
+  --color-story-ink: var(--story-ink);
+  --color-story-muted: var(--story-muted);
+  --color-story-faint: var(--story-faint);
+  --color-story-line: var(--story-line);
+  --color-story-star: var(--story-star);
+  --color-story-overlay: var(--story-overlay);
+  --color-letter-edge: var(--letter-edge);
+  --color-letter-line: var(--letter-line);
+  --color-letter-ink: var(--letter-ink);
+  --color-letter-heading: var(--letter-heading);
+  --color-letter-muted: var(--letter-muted);
+  --color-letter-button: var(--letter-button);
+  --color-letter-yes: var(--letter-yes);
+  --color-letter-yes-foreground: var(--letter-yes-foreground);
+  --color-achievement: var(--achievement);
+  --color-achievement-spark: var(--achievement-spark);
+  --color-achievement-title: var(--achievement-title);
+  --color-achievement-ink: var(--achievement-ink);
+  --color-achievement-muted: var(--achievement-muted);
+  --color-achievement-line: var(--achievement-line);
+  --shadow-letter: var(--letter-shadow);
+  --shadow-letter-button: var(--letter-button-shadow);
 }
 
 :root {
@@ -95,6 +118,57 @@
   --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
   --sidebar-border: oklch(0.929 0.013 255.508);
   --sidebar-ring: oklch(0.704 0.04 256.788);
+  --story-night: oklch(0.16 0.055 300);
+  --story-ink: oklch(0.94 0.025 305);
+  --story-muted: oklch(0.73 0.05 305);
+  --story-faint: oklch(0.58 0.05 305);
+  --story-line: oklch(0.55 0.07 305 / 55%);
+  --story-star: oklch(0.86 0.055 305);
+  --story-overlay: oklch(0.11 0.035 300 / 82%);
+  --letter-edge: oklch(0.79 0.055 78);
+  --letter-line: oklch(0.76 0.065 72);
+  --letter-ink: oklch(0.32 0.045 62);
+  --letter-heading: oklch(0.39 0.09 18);
+  --letter-muted: oklch(0.51 0.06 60);
+  --letter-button: oklch(0.98 0.018 77 / 80%);
+  --letter-yes: oklch(0.62 0.17 7);
+  --letter-yes-foreground: oklch(0.98 0.012 77);
+  --letter-shadow: 0 28px 70px -24px oklch(0.08 0.025 300 / 80%);
+  --letter-button-shadow: 0 10px 24px -12px oklch(0.44 0.15 8 / 75%);
+  --achievement: oklch(0.13 0.05 300);
+  --achievement-spark: oklch(0.89 0.085 82);
+  --achievement-title: oklch(0.91 0.075 82);
+  --achievement-ink: oklch(0.92 0.025 305);
+  --achievement-muted: oklch(0.7 0.045 305);
+  --achievement-line: oklch(0.78 0.075 82 / 50%);
+  --achievement-glow: oklch(0.8 0.1 82 / 55%);
+}
+
+@utility letter-paper {
+  background-color: oklch(0.965 0.025 82);
+  background-image:
+    linear-gradient(112deg, transparent 0%, oklch(0.87 0.04 78 / 18%) 48%, transparent 100%),
+    repeating-linear-gradient(0deg, transparent 0 4px, oklch(0.72 0.03 75 / 5%) 4px 5px);
+}
+
+@utility letter-grain {
+  opacity: 0.32;
+  background-image: radial-gradient(oklch(0.54 0.035 68 / 20%) 0.55px, transparent 0.7px);
+  background-size: 5px 5px;
+}
+
+@utility bg-achievement {
+  background:
+    radial-gradient(ellipse at 50% 42%, oklch(0.28 0.075 305) 0%, transparent 48%),
+    var(--achievement);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 .dark {

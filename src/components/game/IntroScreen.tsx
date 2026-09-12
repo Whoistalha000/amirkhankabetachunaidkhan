@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { Sparkles } from "lucide-react";
 
 interface Props {
   onStart: (name: string) => void;
@@ -23,17 +22,13 @@ export default function IntroScreen({ onStart, fading }: Props) {
 
   return (
     <div
-      className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden px-7 transition-opacity duration-700"
-      style={{
-        opacity: fading ? 0 : 1,
-        background:
-          "radial-gradient(120% 80% at 50% 10%, #3a2a63 0%, #241a42 45%, #140f28 100%)",
-      }}
+      className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden bg-story-night px-8 transition-opacity duration-700"
+      style={{ opacity: fading ? 0 : 1 }}
     >
       {particles.map((p, i) => (
         <span
           key={i}
-          className="pointer-events-none absolute rounded-full bg-[#e6d5ff] blur-[0.5px]"
+          className="pointer-events-none absolute rounded-full bg-story-star blur-[0.5px]"
           style={{
             left: `${p.left}%`,
             bottom: "-10%",
@@ -45,26 +40,23 @@ export default function IntroScreen({ onStart, fading }: Props) {
         />
       ))}
 
-      <div className="relative z-10 w-full max-w-sm text-center">
-        <Sparkles className="mx-auto mb-5 h-7 w-7 text-[#d9c6ff] opacity-80" strokeWidth={1.5} />
-        <h1 className="text-3xl font-light tracking-wide text-[#f0e8ff]">Before we begin...</h1>
-        <p className="mt-3 text-sm text-[#b7a6d9]">A small story is waiting for you.</p>
-
-        <div className="mt-9 space-y-4">
+      <div className="relative z-10 w-full max-w-xs text-center">
+        <h1 className="text-sm font-normal text-story-muted">Before we begin</h1>
+        <div className="mt-12 space-y-7">
           <input
             value={name}
             onChange={(e) => setName(e.target.value.slice(0, 14))}
             onKeyDown={(e) => {
               if (e.key === "Enter") onStart(name.trim() || "Guest");
             }}
-            placeholder="Enter your name"
-            aria-label="Enter your name"
-            className="w-full rounded-2xl border border-white/15 bg-white/8 px-5 py-4 text-center text-base text-[#f4eeff] placeholder:text-[#8f81b5] outline-none backdrop-blur focus:border-[#b79bff]/60 focus:bg-white/12"
+            placeholder="Your name"
+            aria-label="Your name"
+            className="w-full border-0 border-b border-story-line bg-transparent px-2 py-3 text-center text-lg text-story-ink outline-none transition-colors placeholder:text-story-faint focus:border-story-star"
           />
           <button
             type="button"
             onClick={() => onStart(name.trim() || "Guest")}
-            className="w-full rounded-2xl bg-gradient-to-b from-[#a98cf5] to-[#7a5cd6] px-5 py-4 text-base font-medium text-white shadow-[0_10px_30px_-10px_rgba(150,110,255,0.9)] transition-transform active:scale-95"
+            className="mx-auto block border-b border-transparent px-5 py-2 text-sm text-story-ink transition-colors hover:border-story-line hover:text-story-star active:opacity-60"
           >
             Enter
           </button>
