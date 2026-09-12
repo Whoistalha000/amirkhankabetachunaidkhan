@@ -13,44 +13,45 @@ export default function LetterModal({ name, onYes }: Props) {
     const area = areaRef.current;
     if (!area) return;
     const r = area.getBoundingClientRect();
-    const bw = 96;
-    const bh = 48;
-    const maxX = Math.max(10, r.width - bw - 10);
-    const maxY = Math.max(10, r.height - bh - 10);
+    const bw = 92;
+    const bh = 46;
+    const maxX = Math.max(8, r.width - bw - 8);
+    const maxY = Math.max(8, r.height - bh - 8);
     let x = 0;
     let y = 0;
     for (let i = 0; i < 12; i++) {
-      x = 10 + Math.random() * maxX;
-      y = 10 + Math.random() * maxY;
+      x = 8 + Math.random() * Math.max(0, maxX - 8);
+      y = 8 + Math.random() * Math.max(0, maxY - 8);
       if (!noPos || Math.hypot(x - noPos.x, y - noPos.y) > 90) break;
     }
     setNoPos({ x, y });
   }, [noPos]);
 
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center bg-[#140f28]/80 px-5 backdrop-blur-sm">
-      <div className="w-full max-w-sm animate-[letter-in_500ms_cubic-bezier(0.2,0.9,0.25,1)]">
-        <div
-          className="relative overflow-hidden rounded-[22px] border border-[#e6d7bd] p-7 shadow-[0_30px_60px_-20px_rgba(0,0,0,0.7)]"
-          style={{
-            background: "linear-gradient(160deg,#fffaf0 0%,#fdf2e2 60%,#f8e9d5 100%)",
-          }}
-        >
-          <div className="pointer-events-none absolute inset-3 rounded-[16px] border border-[#e0cdae]/70" />
-          <p className="text-center text-[13px] uppercase tracking-[0.25em] text-[#a98763]">
-            For {name}
-          </p>
-          <div className="mx-auto mt-4 h-px w-16 bg-[#dcc4a3]" />
+    <div className="fixed inset-0 z-40 flex items-center justify-center bg-story-overlay px-4 py-6 backdrop-blur-sm">
+      <article className="letter-paper relative flex max-h-[88dvh] w-full max-w-md animate-[letter-in_500ms_cubic-bezier(0.2,0.9,0.25,1)] flex-col overflow-hidden rounded-md border border-letter-edge shadow-letter">
+        <div className="letter-grain pointer-events-none absolute inset-0" />
+        <div className="relative overflow-y-auto overscroll-contain px-6 py-7 sm:px-9 sm:py-9">
+          <p className="text-center font-serif text-xs uppercase text-letter-muted">For {name}</p>
+          <div className="mx-auto mt-4 h-px w-14 bg-letter-line" />
 
-          <div ref={areaRef} className="relative mt-7 min-h-[240px]">
-            <h2 className="px-2 text-center text-2xl leading-snug text-[#4a3524]">
-              May I be your boyfriend?
-            </h2>
+          <div className="mt-7 space-y-5 font-serif text-[15px] leading-7 text-letter-ink sm:text-base">
+            <p>It's been 4-5 months since i met you, and now we've become quite close friends. I've honestly loved every single second that i spent with you. Talking to you is the best part of my day. You're on my mind all the time and ilysm. You're genuinely one of the kindest, wisest and caring people I know or will ever know and you're kinda funny too😝.</p>
+            <p>I love you so much and i hope u like me too😭😭.</p>
+            <p>I don't think I'm worthy enough to be with you and I'm not the best version of myself yet, but i swear ill try to become the best version of myself for you because that's what you deserve, and that's the least i can do.</p>
+            <p>I will try my best to be the person you can count on when things get tough and the one you can talk to freely about literally anything.</p>
+            <p>And at last, I just wanna ask you a question..</p>
+          </div>
 
-            <div className="mt-10 flex justify-center gap-4">
+          <h2 className="mt-9 text-center font-serif text-3xl leading-snug text-letter-heading">
+            May I be your bf?
+          </h2>
+
+          <div ref={areaRef} className="relative mt-6 h-32 w-full">
+            <div className="flex justify-center gap-5">
               <button
                 onClick={onYes}
-                className="rounded-full bg-gradient-to-b from-[#f07fa5] to-[#d84d7c] px-9 py-3 text-base font-semibold text-white shadow-[0_10px_24px_-10px_rgba(216,77,124,0.9)] transition-transform active:scale-95"
+                className="min-w-24 rounded-full bg-letter-yes px-7 py-3 text-sm font-semibold text-letter-yes-foreground shadow-letter-button transition-transform active:scale-95"
               >
                 YES
               </button>
@@ -61,10 +62,10 @@ export default function LetterModal({ name, onYes }: Props) {
                   dodge();
                 }}
                 onClick={dodge}
-                className="rounded-full border border-[#d9c3a4] bg-white/70 px-9 py-3 text-base font-semibold text-[#8a6b4e] transition-transform"
+                className="min-w-24 rounded-full border border-letter-line bg-letter-button px-7 py-3 text-sm font-semibold text-letter-muted transition-[left,top,transform] active:scale-95"
                 style={
                   noPos
-                    ? { position: "absolute", left: noPos.x, top: noPos.y, transition: "left 220ms ease, top 220ms ease" }
+                      ? { position: "absolute", left: noPos.x, top: noPos.y, transition: "left 220ms ease, top 220ms ease" }
                     : undefined
                 }
               >
@@ -73,7 +74,7 @@ export default function LetterModal({ name, onYes }: Props) {
             </div>
           </div>
         </div>
-      </div>
+      </article>
 
       <style>{`
         @keyframes letter-in {

@@ -52,17 +52,17 @@ export default function GameCanvas({
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const player = useRef<Actor>({ x: 420, y: 1050, dir: "right", walkT: 0, moving: false });
-  const cat = useRef<Actor & { sleeping: boolean; rest: { x: number; y: number } }>({
+  const cat = useRef<Actor & { sleeping: boolean }>({
     x: 340,
     y: 1090,
     dir: "right",
     walkT: 0,
     moving: false,
     sleeping: false,
-    rest: { x: 340, y: 1090 },
   });
   const cam = useRef<Camera>({ x: 0, y: 0 });
   const idle = useRef(0);
+  const lastPlayerPosition = useRef({ x: 420, y: 1050 });
   const keys = useRef<Record<string, boolean>>({});
   const lockout = useRef(0);
   const nearEnv = useRef(false);
@@ -77,6 +77,7 @@ export default function GameCanvas({
     sceneRef.current = scene;
     lockout.current = 0.5;
     idle.current = 0;
+    lastPlayerPosition.current = { x: player.current.x, y: player.current.y };
     cat.current.sleeping = false;
     inDoorZone.current = true;
     if (lastScene.current === scene) return;
@@ -99,6 +100,7 @@ export default function GameCanvas({
       cat.current.x = DOOR.x - 90;
       cat.current.y = DOOR.y + 220;
     }
+    lastPlayerPosition.current = { x: player.current.x, y: player.current.y };
     cam.current.x = -1;
   }, [scene]);
 
@@ -118,8 +120,10 @@ export default function GameCanvas({
   }, []);
 
   useEffect(() => {
-    const canvas = canvasRef.current!;
-    const ctx = canvas.getContext("2d", { alpha: false })!;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d", { alpha: false });
+    if (!ctx) return;
     let raf = 0;
     let last = performance.now();
     let t = 0;
@@ -178,17 +182,27 @@ export default function GameCanvas({
         const dir: Dir =
           Math.abs(ix) > Math.abs(iy) ? (ix > 0 ? "right" : "left") : iy > 0 ? "down" : "up";
         p.dir = dir;
-        idle.current = 0;
-        cat.current.sleeping = false;
       } else {
         p.walkT += dt;
-        idle.current += dt;
       }
 
       // bounds
       const topLimit = sc === "outdoor" ? SKY_H + 30 : 268;
       p.x = clamp(p.x, 40, world.w - 40);
       p.y = clamp(p.y, topLimit, world.h - (sc === "outdoor" ? 40 : 30));
+
+      // Inactivity is based on real position changes, not merely input state.
+      const movedDistance = Math.hypot(
+        p.x - lastPlayerPosition.current.x,
+        p.y - lastPlayerPosition.current.y,
+      );
+      if (movedDistance > 0.35) {
+        idle.current = 0;
+        cat.current.sleeping = false;
+        lastPlayerPosition.current = { x: p.x, y: p.y };
+      } else if (!pausedRef.current) {
+        idle.current += dt;
+      }
 
       // cottage collision (solid, except the doorstep zone)
       if (sc === "outdoor") {
@@ -234,31 +248,27 @@ export default function GameCanvas({
 
       /* ---- cat ---- */
       const c = cat.current;
-      if (idle.current >= IDLE_SLEEP && !c.sleeping) {
-        const target = { x: p.x - 58, y: p.y + 26 };
-        const d = Math.hypot(target.x - c.x, target.y - c.y);
-        if (d < 8) {
-          c.sleeping = true;
-          c.rest = { x: c.x, y: c.y };
-        }
-      }
       if (c.sleeping) {
         c.moving = false;
       } else {
         const followDist = 74;
-        const dx = p.x - c.x;
-        const dy = p.y + 18 - c.y;
+        const settling = idle.current >= IDLE_SLEEP;
+        const targetX = settling ? p.x - 52 : p.x;
+        const targetY = settling ? p.y + 24 : p.y + 18;
+        const dx = targetX - c.x;
+        const dy = targetY - c.y;
         const d = Math.hypot(dx, dy);
-        const target = idle.current >= IDLE_SLEEP ? followDist * 0.25 : followDist;
+        const target = settling ? 7 : followDist;
         if (d > target) {
           const speed = Math.min(CAT_SPEED, 90 + (d - target) * 3.2);
           c.x += (dx / d) * speed * dt;
           c.y += (dy / d) * speed * dt;
           c.moving = true;
           c.walkT += dt;
-          c.dir = Math.abs(dx) > 6 ? (dx > 0 ? "right" : "left") : c.dir;
+          c.dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : dy > 0 ? "down" : "up";
         } else {
           c.moving = false;
+          if (settling) c.sleeping = true;
         }
       }
       c.x = clamp(c.x, 30, world.w - 30);
