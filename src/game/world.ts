@@ -13,9 +13,9 @@ export const EXIT_DOOR = { x: INDOOR.w / 2, y: INDOOR.h - 40, r: 70 };
 export const TABLE = { x: INDOOR.w - 250, y: 320, w: 240, h: 110 };
 export const BED = { x: 235, y: 360, w: 300, h: 210 };
 export const SHELF = { x: INDOOR.w / 2, y: 150 };
-// Talha kneels in the middle of the room, holding the letter. The player
-// enters from the bottom and walks up to him.
-export const TALHA = { x: INDOOR.w / 2, y: 470, r: 150 };
+// The letter rests on the wall shelf. The player enters from the bottom and
+// walks up toward the shelf to reach and open it.
+export const LETTER_SPOT = { x: SHELF.x, y: 320, r: 210 };
 
 // Parked black electric scooty in the outdoor meadow, near the spawn point.
 export const SCOOTY_SPAWN = { x: 600, y: 1075 };
