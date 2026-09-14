@@ -110,11 +110,7 @@ function Game() {
                   <ChevronRight className="h-3.5 w-3.5 animate-pulse" strokeWidth={3} />
                 </p>
               )}
-              {scene === "indoor" && !nearEnvelope && (
-                <p className="rounded-full bg-black/35 px-4 py-2 text-center text-xs font-medium text-white/90 backdrop-blur-sm">
-                  Go to Talha
-                </p>
-              )}
+
             </div>
           )}
 
@@ -126,7 +122,7 @@ function Game() {
                 className="pointer-events-auto flex animate-[pulse-soft_1.8s_ease-in-out_infinite] items-center gap-2 rounded-full bg-gradient-to-b from-[#ffe6a8] to-[#f3c15f] px-6 py-3 text-sm font-semibold text-[#5a3d16] shadow-[0_0_34px_-4px_rgba(255,214,130,0.9)] active:scale-95"
               >
                 <Mail className="h-4 w-4" strokeWidth={2} />
-                Read Talha&apos;s letter
+                Read the letter
               </button>
             </div>
           )}

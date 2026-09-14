@@ -1,5 +1,5 @@
 import type { Dir, Prop } from "./types";
-import { BED, COTTAGE, INDOOR, OUTDOOR, SHELF, SKY_H, TABLE, TALHA, EXIT_DOOR } from "./world";
+import { BED, COTTAGE, INDOOR, OUTDOOR, SHELF, SKY_H, TABLE, ENVELOPE, EXIT_DOOR } from "./world";
 
 function ellipse(ctx: CanvasRenderingContext2D, x: number, y: number, rx: number, ry: number, fill: string) {
   ctx.beginPath();
@@ -291,7 +291,7 @@ export function drawInterior(ctx: CanvasRenderingContext2D, t: number) {
     roundRect(ctx, bx + 6, by - bh / 2 + 22, 84, 46, 12, "#fdf2f8");
   }
 
-  /* ---- rug in the centre (where Talha kneels) ---- */
+  /* ---- rug in the centre ---- */
   ctx.globalAlpha = 0.92;
   ellipse(ctx, w / 2, 520, 300, 138, "#c98ba8");
   ellipse(ctx, w / 2, 520, 242, 108, "#dda6bd");
@@ -348,106 +348,68 @@ export function drawInterior(ctx: CanvasRenderingContext2D, t: number) {
   ctx.fillRect(0, 0, w, h);
 }
 
-// Talha, kneeling on one knee, holding the letter out like a proposal.
-export function drawTalha(ctx: CanvasRenderingContext2D, t: number) {
-  const x = TALHA.x;
-  const y = TALHA.y;
-  const breathe = Math.sin(t * 2) * 1.4;
+// A sealed love-letter envelope resting on the dining table, standing upright
+// and leaning back slightly so its heart seal faces the player.
+export function drawEnvelope(ctx: CanvasRenderingContext2D, t: number) {
+  const x = ENVELOPE.x;
+  const y = ENVELOPE.y;
+  const bob = Math.sin(t * 1.6) * 1.4;
 
-  // soft romantic glow on the floor around him
-  const glow = 0.28 + Math.sin(t * 2.4) * 0.12;
+  // soft romantic glow on the table around the envelope
+  const glow = 0.26 + Math.sin(t * 2.4) * 0.12;
   ctx.globalAlpha = glow;
-  ellipse(ctx, x, y + 96, 150, 46, "#ffd9a0");
+  ellipse(ctx, x, y + 14, 70, 22, "#ffd9a0");
   ctx.globalAlpha = 1;
-  shadow(ctx, x, y + 96, 60);
 
-  // floating hearts rising around him
+  // floating hearts rising above it
   for (let i = 0; i < 3; i++) {
     const p = (t * 0.32 + i * 0.34) % 1;
     ctx.globalAlpha = Math.sin(p * Math.PI) * 0.8;
-    const hx = x + (i === 1 ? 70 : -70) + Math.sin(p * 5 + i) * 8;
-    const hy = y + 40 - p * 130;
-    drawHeart(ctx, hx, hy, 7 + p * 4, "#f06a92");
+    const hx = x + (i === 1 ? 30 : -30) + Math.sin(p * 5 + i) * 6;
+    const hy = y - 24 - p * 90;
+    drawHeart(ctx, hx, hy, 6 + p * 4, "#f06a92");
     ctx.globalAlpha = 1;
   }
 
   ctx.save();
-  ctx.translate(x, y + breathe * 0.3);
+  ctx.translate(x, y - bob * 0.3);
+  ctx.rotate(-0.05);
 
-  // --- kneeling legs: one knee down, one knee up ---
-  // back leg folded on the ground (kneeling)
-  roundRect(ctx, -34, 44, 54, 20, 8, "#2f3a52");
-  ellipse(ctx, -34, 60, 14, 10, "#2a3247"); // shin flat on floor
-  // shoe of kneeling leg
-  roundRect(ctx, -52, 56, 22, 12, 5, "#1c1f2b");
-  // front leg raised (bent knee up)
-  roundRect(ctx, 14, 6, 22, 46, 9, "#374465"); // thigh
-  roundRect(ctx, 20, 40, 20, 30, 8, "#2f3a52"); // shin down to floor
-  roundRect(ctx, 14, 62, 30, 12, 5, "#1c1f2b"); // front shoe
-
-  // --- torso, leaning slightly forward ---
-  roundRect(ctx, -26, -34, 50, 52, 16, "#3d5a8c"); // shirt/jacket
-  roundRect(ctx, -26, -20, 50, 22, 12, "#324c78"); // lower shade
-  // collar
-  ctx.beginPath();
-  ctx.moveTo(-8, -34);
-  ctx.lineTo(0, -20);
-  ctx.lineTo(8, -34);
-  ctx.closePath();
-  ctx.fillStyle = "#f4f6fb";
-  ctx.fill();
-
-  // --- arms held forward, cupping the letter ---
-  roundRect(ctx, -30, -20, 12, 30, 6, "#3d5a8c");
-  roundRect(ctx, 18, -20, 12, 30, 6, "#3d5a8c");
-  // hands
-  ellipse(ctx, -26, 12, 7, 6, "#e8b58c");
-  ellipse(ctx, 26, 12, 7, 6, "#e8b58c");
-
-  // --- the letter he is offering (replaces the ring) ---
-  const ly = 8 + Math.sin(t * 1.6) * 1.5;
-  ctx.save();
-  ctx.translate(0, ly);
-  ctx.rotate(-0.04);
-  const lglow = 0.4 + Math.sin(t * 3) * 0.2;
-  ctx.globalAlpha = lglow;
-  ellipse(ctx, 0, 2, 46, 34, "#ffe9b0");
+  // little stand shadow so it reads as resting on the table
+  ctx.globalAlpha = 0.18;
+  ellipse(ctx, 0, 16, 44, 10, "#3a2b26");
   ctx.globalAlpha = 1;
-  roundRect(ctx, -34, -20, 68, 44, 6, "#fff8ee");
+
+  // envelope body
+  roundRect(ctx, -44, -30, 88, 58, 7, "#fff8ee");
+  roundRect(ctx, -44, 6, 88, 22, 7, "#f6ead6");
+  // side edges of the folded paper
   ctx.strokeStyle = "#e6cfae";
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(-34, -20);
-  ctx.lineTo(0, 6);
-  ctx.lineTo(34, -20);
+  ctx.moveTo(-44, 28);
+  ctx.lineTo(0, -2);
+  ctx.lineTo(44, 28);
   ctx.stroke();
-  ellipse(ctx, 0, -1, 9, 9, "#e0577f");
-  ctx.restore();
-
-  // --- head ---
-  ellipse(ctx, 0, -50, 16, 16, "#e8b58c");
-  // hair (short, side part) — visually distinct from the player
+  // top flap
   ctx.beginPath();
-  ctx.ellipse(0, -58, 17, 13, 0, Math.PI, 0);
-  ctx.fillStyle = "#221812";
+  ctx.moveTo(-44, -30);
+  ctx.lineTo(0, 4);
+  ctx.lineTo(44, -30);
+  ctx.closePath();
+  ctx.fillStyle = "#fffdf7";
   ctx.fill();
-  ctx.fillRect(-17, -58, 34, 6);
-  ellipse(ctx, 15, -52, 4, 9, "#221812");
-  ellipse(ctx, -15, -52, 4, 9, "#221812");
-  // face
-  ellipse(ctx, -6, -49, 2.4, 3, "#2f2745");
-  ellipse(ctx, 6, -49, 2.4, 3, "#2f2745");
-  ellipse(ctx, -10, -44, 3, 2.2, "#f0a48f");
-  ellipse(ctx, 10, -44, 3, 2.2, "#f0a48f");
-  ctx.strokeStyle = "#a5675a";
-  ctx.lineWidth = 1.6;
-  ctx.beginPath();
-  ctx.arc(0, -45, 4, 0.15 * Math.PI, 0.85 * Math.PI);
+  ctx.strokeStyle = "#e6cfae";
   ctx.stroke();
+  // wax heart seal
+  const seal = 0.85 + Math.sin(t * 3) * 0.15;
+  ctx.globalAlpha = seal;
+  drawHeart(ctx, 0, 2, 11, "#e0577f");
+  ctx.globalAlpha = 1;
 
   ctx.restore();
 
-  drawNameTag(ctx, x, y - 80, "Talha", "rgba(30,26,52,0.72)", "#ffe9f3");
+  drawNameTag(ctx, x, y - 58, "For you", "rgba(30,26,52,0.72)", "#ffe9f3");
 }
 
 function drawHeart(ctx: CanvasRenderingContext2D, x: number, y: number, s: number, fill: string) {
@@ -606,11 +568,13 @@ export function drawCat(
     const breathe = Math.sin(t * 2) * 1.2;
     ellipse(ctx, 0, -10 + breathe * 0.2, 26, 13 + breathe * 0.2, "#ffffff");
     ellipse(ctx, -18, -14, 12, 10, "#fdfdff");
-    // curled tail
+    // curled tail — starts at the body's rear and loops back to rest against it
     ctx.strokeStyle = "#f2f2f7";
     ctx.lineWidth = 6;
+    ctx.lineCap = "round";
     ctx.beginPath();
-    ctx.arc(20, -10, 12, Math.PI * 0.2, Math.PI * 1.4);
+    ctx.moveTo(20, -6);
+    ctx.bezierCurveTo(42, -8 + breathe * 0.4, 40, -30 + breathe * 0.4, 16, -22 + breathe * 0.3);
     ctx.stroke();
     // ears
     ctx.beginPath();
