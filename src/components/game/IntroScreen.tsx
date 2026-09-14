@@ -22,6 +22,7 @@ export default function IntroScreen({ onStart, fading }: Props) {
 
   return (
     <div
+      suppressHydrationWarning
       className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden bg-story-night px-8 transition-opacity duration-700"
       style={{ opacity: fading ? 0 : 1 }}
     >
