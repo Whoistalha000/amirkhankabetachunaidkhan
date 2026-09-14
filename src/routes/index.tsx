@@ -11,13 +11,13 @@ import type { Scene } from "@/game/types";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "A Little Letter - An Interactive Romantic Story Game" },
+      { title: "Game" },
       {
         name: "description",
         content:
-          "Walk through a dreamy storybook meadow with Pillow the cat, find the cottage, and open the letter waiting inside.",
+          "Walk with Pillow the cat, find the cottage, and open the letter waiting inside.",
       },
-      { property: "og:title", content: "A Little Letter - Interactive Romantic Story Game" },
+      { property: "og:title", content: "Game" },
       {
         property: "og:description",
         content:
