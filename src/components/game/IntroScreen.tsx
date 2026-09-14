@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 interface Props {
   onStart: (name: string) => void;
@@ -7,6 +7,11 @@ interface Props {
 
 export default function IntroScreen({ onStart, fading }: Props) {
   const [name, setName] = useState("");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const particles = useMemo(
     () =>
@@ -26,6 +31,8 @@ export default function IntroScreen({ onStart, fading }: Props) {
       className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden bg-story-night px-8 transition-opacity duration-700"
       style={{ opacity: fading ? 0 : 1 }}
     >
+      {!mounted ? null : (
+        <>
       {particles.map((p, i) => (
         <span
           key={i}
@@ -71,6 +78,8 @@ export default function IntroScreen({ onStart, fading }: Props) {
           100% { transform: translateY(-110vh) scale(1.25); opacity: 0; }
         }
       `}</style>
+        </>
+      )}
     </div>
   );
 }
