@@ -1,5 +1,5 @@
 import type { Dir, Prop } from "./types";
-import { COTTAGE, INDOOR, OUTDOOR, SKY_H, TABLE, ENVELOPE, EXIT_DOOR } from "./world";
+import { COTTAGE, INDOOR, OUTDOOR, SKY_H, TABLE, EXIT_DOOR, TALHA, SCOOTY } from "./world";
 
 function ellipse(ctx: CanvasRenderingContext2D, x: number, y: number, rx: number, ry: number, fill: string) {
   ctx.beginPath();
@@ -39,7 +39,6 @@ export function drawGround(ctx: CanvasRenderingContext2D, camX: number, camY: nu
   ctx.fillStyle = g;
   ctx.fillRect(0, SKY_H - 10, OUTDOOR.w, OUTDOOR.h - SKY_H + 10);
 
-  // soft grass texture bands (only near viewport)
   ctx.globalAlpha = 0.08;
   ctx.fillStyle = "#ffffff";
   const startY = Math.max(SKY_H, Math.floor(camY / 60) * 60);
@@ -59,7 +58,6 @@ export function drawSky(ctx: CanvasRenderingContext2D, t: number) {
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, OUTDOOR.w, SKY_H);
 
-  // distant hills
   ctx.fillStyle = "#bfe3ae";
   for (let i = 0; i < 12; i++) {
     ellipse(ctx, i * 220 + ((t * 0) % 1), SKY_H + 10, 190, 80, "#bfe3ae");
@@ -136,6 +134,98 @@ export function drawProp(ctx: CanvasRenderingContext2D, p: Prop, t: number) {
   }
 }
 
+/* ---------------- scooty ---------------- */
+
+export function drawScooty(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  dir: Dir,
+  t: number,
+  moving: boolean,
+) {
+  const flip = dir === "left" ? -1 : 1;
+  shadow(ctx, x, y + 4, 36);
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(flip, 1);
+
+  // rear wheel
+  ctx.fillStyle = "#1a1a1a";
+  ctx.beginPath();
+  ctx.arc(-22, -8, 16, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#333333";
+  ctx.beginPath();
+  ctx.arc(-22, -8, 10, 0, Math.PI * 2);
+  ctx.fill();
+  // spokes
+  ctx.strokeStyle = "#555555";
+  ctx.lineWidth = 1.5;
+  const spin = moving ? t * 14 : 0;
+  for (let i = 0; i < 4; i++) {
+    const a = spin + (i * Math.PI) / 2;
+    ctx.beginPath();
+    ctx.moveTo(-22, -8);
+    ctx.lineTo(-22 + Math.cos(a) * 9, -8 + Math.sin(a) * 9);
+    ctx.stroke();
+  }
+
+  // front wheel
+  ctx.fillStyle = "#1a1a1a";
+  ctx.beginPath();
+  ctx.arc(24, -8, 16, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#333333";
+  ctx.beginPath();
+  ctx.arc(24, -8, 10, 0, Math.PI * 2);
+  ctx.fill();
+  for (let i = 0; i < 4; i++) {
+    const a = spin + (i * Math.PI) / 2;
+    ctx.beginPath();
+    ctx.moveTo(24, -8);
+    ctx.lineTo(24 + Math.cos(a) * 9, -8 + Math.sin(a) * 9);
+    ctx.stroke();
+  }
+
+  // deck / footboard
+  roundRect(ctx, -26, -22, 52, 8, 4, "#222222");
+
+  // body / frame
+  roundRect(ctx, -14, -34, 30, 16, 6, "#1a1a1a");
+  roundRect(ctx, -12, -32, 26, 12, 5, "#2a2a2a");
+
+  // seat
+  roundRect(ctx, -20, -40, 22, 8, 4, "#0d0d0d");
+  roundRect(ctx, -18, -42, 18, 6, 3, "#1a1a1a");
+
+  // handlebar stem
+  ctx.strokeStyle = "#1a1a1a";
+  ctx.lineWidth = 4;
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(18, -30);
+  ctx.lineTo(24, -48);
+  ctx.stroke();
+
+  // handlebar
+  ctx.lineWidth = 5;
+  ctx.beginPath();
+  ctx.moveTo(16, -50);
+  ctx.lineTo(32, -50);
+  ctx.stroke();
+
+  // headlight
+  ellipse(ctx, 26, -44, 4, 4, "#ffe9a0");
+  if (moving) {
+    ctx.globalAlpha = 0.3 + Math.sin(t * 8) * 0.1;
+    ellipse(ctx, 30, -44, 8, 5, "#fff5b0");
+    ctx.globalAlpha = 1;
+  }
+
+  ctx.restore();
+}
+
 /* ---------------- cottage ---------------- */
 
 export function drawCottage(ctx: CanvasRenderingContext2D, t: number) {
@@ -188,7 +278,6 @@ export function drawCottage(ctx: CanvasRenderingContext2D, t: number) {
   roundRect(ctx, dx - 44, dyTop, 88, 140, 40, "#7a4b3a");
   roundRect(ctx, dx - 36, dyTop + 8, 72, 132, 34, "#a5674a");
   ellipse(ctx, dx + 22, dyTop + 78, 5, 5, "#ffd88a");
-  // warm glow at door
   const glow = 0.35 + Math.sin(t * 2) * 0.08;
   ctx.globalAlpha = glow;
   ellipse(ctx, dx, dyTop + 150, 78, 26, "#ffdf9e");
@@ -248,6 +337,14 @@ export function drawInterior(ctx: CanvasRenderingContext2D, t: number) {
   ellipse(ctx, w - 205, 200, 46, 34, "#ff9a3c");
   ellipse(ctx, w - 205, 208, 26, 22, "#ffd76a");
   ctx.globalAlpha = 1;
+  // mantel
+  roundRect(ctx, w - 310, 36, 210, 16, 6, "#7a6e6a");
+  // candle on mantel
+  roundRect(ctx, w - 240, 18, 10, 22, 3, "#f0e6c8");
+  ellipse(ctx, w - 235, 14, 3, 5, "#ffcc66");
+  // photo frame on mantel
+  roundRect(ctx, w - 180, 12, 40, 30, 4, "#6f4622");
+  roundRect(ctx, w - 176, 16, 32, 22, 3, "#d4c5a0");
 
   // rug
   ctx.globalAlpha = 0.9;
@@ -288,9 +385,118 @@ export function drawInterior(ctx: CanvasRenderingContext2D, t: number) {
     ellipse(ctx, fx, fy, 4, 4, "#ffd76a");
   }
 
-  // chairs
-  roundRect(ctx, x - 250, y + 10, 60, 70, 10, "#8a5a34");
-  roundRect(ctx, x + 190, y + 10, 60, 70, 10, "#8a5a34");
+  // chairs with backs and legs
+  const drawChair = (cx: number, cy: number) => {
+    // backrest
+    roundRect(ctx, cx - 22, cy - 50, 44, 56, 8, "#7a4f30");
+    roundRect(ctx, cx - 18, cy - 46, 36, 48, 6, "#9a6a40");
+    // seat
+    roundRect(ctx, cx - 26, cy + 2, 52, 14, 6, "#8a5a34");
+    // legs
+    ctx.fillStyle = "#6a4228";
+    ctx.fillRect(cx - 24, cy + 14, 6, 28);
+    ctx.fillRect(cx + 18, cy + 14, 6, 28);
+  };
+  drawChair(x - 250, y + 10);
+  drawChair(x + 190, y + 10);
+
+  // bed in corner (top-left area)
+  const bx = 70;
+  const by = 620;
+  shadow(ctx, bx + 70, by + 50, 90);
+  // bed frame
+  roundRect(ctx, bx, by, 140, 100, 8, "#7a5238");
+  // mattress
+  roundRect(ctx, bx + 8, by + 6, 124, 88, 6, "#e8dcc8");
+  // pillow
+  roundRect(ctx, bx + 14, by + 10, 40, 28, 8, "#f5f0e8");
+  roundRect(ctx, bx + 14, by + 10, 40, 28, 8, "#ede6d8");
+  // blanket
+  roundRect(ctx, bx + 8, by + 44, 124, 50, 6, "#c9a0a8");
+  roundRect(ctx, bx + 8, by + 44, 124, 14, 6, "#b88a92");
+  // blanket pattern stripes
+  ctx.globalAlpha = 0.3;
+  ctx.fillStyle = "#d4b0b8";
+  for (let i = 0; i < 4; i++) {
+    ctx.fillRect(bx + 14 + i * 30, by + 48, 18, 42);
+  }
+  ctx.globalAlpha = 1;
+
+  // bedside table with glowing lamp
+  const ntx = 230;
+  const nty = 640;
+  roundRect(ctx, ntx, nty, 50, 50, 6, "#7a5238");
+  roundRect(ctx, ntx + 4, nty + 4, 42, 42, 4, "#8a6240");
+  // lamp base
+  roundRect(ctx, ntx + 18, nty - 20, 14, 22, 4, "#5a4030");
+  // lamp shade
+  ctx.beginPath();
+  ctx.moveTo(ntx + 10, nty - 20);
+  ctx.lineTo(ntx + 40, nty - 20);
+  ctx.lineTo(ntx + 34, nty - 44);
+  ctx.lineTo(ntx + 16, nty - 44);
+  ctx.closePath();
+  ctx.fillStyle = "#fff5d0";
+  ctx.fill();
+  // lamp glow
+  const lampGlow = 0.25 + Math.sin(t * 2.5) * 0.06;
+  ctx.globalAlpha = lampGlow;
+  ellipse(ctx, ntx + 25, nty - 32, 40, 30, "#ffe9a0");
+  ctx.globalAlpha = 1;
+
+  // bookshelf on the right wall
+  const sx = w - 200;
+  const sy = 250;
+  roundRect(ctx, sx, sy, 120, 180, 6, "#6a4228");
+  roundRect(ctx, sx + 4, sy + 4, 112, 172, 4, "#7a5238");
+  // shelves
+  ctx.fillStyle = "#5a3818";
+  for (let i = 0; i < 4; i++) {
+    ctx.fillRect(sx + 4, sy + 4 + i * 44, 112, 4);
+  }
+  // books on shelves
+  const bookColors = ["#a04040", "#4060a0", "#50a060", "#a08040", "#8040a0", "#40a0a0"];
+  for (let row = 0; row < 4; row++) {
+    let bx2 = sx + 8;
+    for (let col = 0; col < 5; col++) {
+      const bh = 34 + ((row * 3 + col * 7) % 6);
+      const bw = 12 + ((row * 5 + col * 3) % 6);
+      const bc = bookColors[(row * 5 + col) % bookColors.length] ?? "#a04040";
+      roundRect(ctx, bx2, sy + 8 + row * 44 + (38 - bh), bw, bh, 2, bc);
+      bx2 += bw + 2;
+      if (bx2 > sx + 112 - 12) break;
+    }
+  }
+
+  // storage chest near bed
+  const cx2 = 70;
+  const cy2 = 740;
+  shadow(ctx, cx2 + 45, cy2 + 30, 55);
+  roundRect(ctx, cx2, cy2, 90, 50, 6, "#6a4228");
+  roundRect(ctx, cx2 + 4, cy2 + 4, 82, 42, 4, "#7a5238");
+  // lid
+  roundRect(ctx, cx2, cy2 - 8, 90, 16, 6, "#5a3818");
+  roundRect(ctx, cx2 + 4, cy2 - 6, 82, 12, 4, "#6a4228");
+  // lock
+  roundRect(ctx, cx2 + 38, cy2 + 16, 14, 14, 3, "#c0a060");
+  ellipse(ctx, cx2 + 45, cy2 + 23, 3, 3, "#5a4030");
+
+  // wall decor - framed picture
+  roundRect(ctx, w - 380, 50, 60, 50, 4, "#6f4622");
+  roundRect(ctx, w - 376, 54, 52, 42, 3, "#d4c5a0");
+  // simple heart in picture
+  ctx.fillStyle = "#c45a6a";
+  ctx.font = "700 28px system-ui";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("\u2665", w - 350, 76);
+
+  // potted plant near window
+  roundRect(ctx, 300, 180, 34, 34, 8, "#c98c63");
+  ellipse(ctx, 317, 176, 20, 14, "#66b972");
+  ellipse(ctx, 310, 168, 8, 10, "#57ab63");
+  ellipse(ctx, 324, 170, 8, 10, "#57ab63");
+  ellipse(ctx, 317, 162, 7, 9, "#68bd72");
 
   // exit door (bottom)
   roundRect(ctx, EXIT_DOOR.x - 60, INDOOR.h - 40, 120, 40, 12, "#7a4b3a");
@@ -307,36 +513,89 @@ export function drawInterior(ctx: CanvasRenderingContext2D, t: number) {
   ctx.fillRect(0, 0, w, h);
 }
 
-export function drawEnvelope(ctx: CanvasRenderingContext2D, t: number) {
-  const x = ENVELOPE.x;
-  const y = ENVELOPE.y;
-  const pulse = 1 + Math.sin(t * 3) * 0.06;
-  const glow = 0.35 + Math.sin(t * 3) * 0.22;
+/* ---------------- Talha (kneeling proposal) ---------------- */
 
+export function drawTalha(ctx: CanvasRenderingContext2D, x: number, y: number, t: number) {
+  shadow(ctx, x, y + 2, 24);
   ctx.save();
-  ctx.translate(x, y + Math.sin(t * 1.6) * 3);
-  ctx.scale(pulse, pulse);
-  ctx.globalAlpha = glow;
-  ellipse(ctx, 0, 0, 78, 60, "#ffe9b0");
-  ctx.globalAlpha = glow * 0.6;
-  ellipse(ctx, 0, 0, 52, 40, "#fff6da");
-  ctx.globalAlpha = 1;
+  ctx.translate(x, y);
 
-  roundRect(ctx, -46, -30, 92, 60, 8, "#fff8ee");
+  const breathe = Math.sin(t * 2) * 0.8;
+
+  // kneeling body — lowered
+  // back knee (right leg, folded under)
+  roundRect(ctx, 8, -16, 18, 20, 6, "#2a3548");
+  // front knee (left leg, on one knee)
+  roundRect(ctx, -20, -12, 16, 16, 6, "#2a3548");
+  // shoe
+  roundRect(ctx, -24, -2, 18, 7, 3, "#1a1a2a");
+  roundRect(ctx, 10, 0, 16, 7, 3, "#1a1a2a");
+
+  // body / torso (leaning forward slightly)
+  ctx.save();
+  ctx.translate(0, -breathe);
+  roundRect(ctx, -16, -52, 32, 38, 12, "#3b5c7a");
+  roundRect(ctx, -14, -44, 28, 28, 10, "#4a6e8e");
+  // shirt collar
+  roundRect(ctx, -8, -52, 16, 8, 4, "#2a4560");
+
+  // arms — both hands extended forward holding the letter
+  roundRect(ctx, -24, -46, 10, 28, 4, "#e8c4a0");
+  roundRect(ctx, 14, -46, 10, 28, 4, "#e8c4a0");
+  // hands
+  ellipse(ctx, -22, -20, 7, 7, "#e8c4a0");
+  ellipse(ctx, 22, -20, 7, 7, "#e8c4a0");
+
+  // the letter held in hands
+  const letterFloat = Math.sin(t * 1.5) * 1.5;
+  ctx.save();
+  ctx.translate(0, -26 + letterFloat);
+  // letter glow
+  const lglow = 0.2 + Math.sin(t * 3) * 0.1;
+  ctx.globalAlpha = lglow;
+  ellipse(ctx, 0, 0, 44, 30, "#ffe9b0");
+  ctx.globalAlpha = 1;
+  // letter paper
+  roundRect(ctx, -24, -16, 48, 32, 4, "#fff8ee");
   ctx.strokeStyle = "#e6cfae";
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(-46, -30);
-  ctx.lineTo(0, 8);
-  ctx.lineTo(46, -30);
-  ctx.stroke();
-  ellipse(ctx, 0, 2, 11, 11, "#e0577f");
-  ctx.fillStyle = "#ffd2df";
-  ctx.font = "700 12px system-ui";
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(-24, -16, 48, 32);
+  // wax seal
+  ellipse(ctx, 0, 0, 7, 7, "#c45a6a");
+  ctx.fillStyle = "#e08090";
+  ctx.font = "700 8px system-ui";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText("L", 0, 2);
+  ctx.fillText("L", 0, 0);
   ctx.restore();
+
+  // head
+  ellipse(ctx, 0, -66, 16, 16, "#e8c4a0");
+  // hair — distinct from player (shorter, warmer tone)
+  ctx.beginPath();
+  ctx.ellipse(0, -73, 17, 13, 0, Math.PI, 0);
+  ctx.fillStyle = "#2a1a10";
+  ctx.fill();
+  // side hair
+  ellipse(ctx, -13, -66, 5, 10, "#2a1a10");
+  ellipse(ctx, 13, -66, 5, 10, "#2a1a10");
+  // face — looking up at player
+  ellipse(ctx, -5, -64, 2.4, 3, "#1a1a2a");
+  ellipse(ctx, 5, -64, 2.4, 3, "#1a1a2a");
+  // blush
+  ellipse(ctx, -9, -59, 3, 2, "#e8a0a0");
+  ellipse(ctx, 9, -59, 3, 2, "#e8a0a0");
+  // hopeful smile
+  ctx.strokeStyle = "#8a5040";
+  ctx.lineWidth = 1.6;
+  ctx.beginPath();
+  ctx.arc(0, -60, 4, 0.1 * Math.PI, 0.9 * Math.PI);
+  ctx.stroke();
+
+  ctx.restore();
+  ctx.restore();
+
+  drawNameTag(ctx, x, y - 92, "Talha", "rgba(30,40,60,0.72)", "#ffffff");
 }
 
 /* ---------------- characters ---------------- */
@@ -396,6 +655,160 @@ export function drawPlayer(
   ctx.restore();
 
   drawNameTag(ctx, x, y - 96, name, "rgba(45,32,64,0.72)", "#ffffff");
+}
+
+export function drawPlayerOnScooty(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  dir: Dir,
+  name: string,
+  t: number,
+  moving: boolean,
+) {
+  const flip = dir === "left" ? -1 : 1;
+  shadow(ctx, x, y + 4, 36);
+
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(flip, 1);
+
+  // scooty (drawn without its own shadow since we already cast one)
+  // rear wheel
+  ctx.fillStyle = "#1a1a1a";
+  ctx.beginPath();
+  ctx.arc(-22, -8, 16, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#333333";
+  ctx.beginPath();
+  ctx.arc(-22, -8, 10, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = "#555555";
+  ctx.lineWidth = 1.5;
+  const spin = moving ? t * 14 : 0;
+  for (let i = 0; i < 4; i++) {
+    const a = spin + (i * Math.PI) / 2;
+    ctx.beginPath();
+    ctx.moveTo(-22, -8);
+    ctx.lineTo(-22 + Math.cos(a) * 9, -8 + Math.sin(a) * 9);
+    ctx.stroke();
+  }
+  // front wheel
+  ctx.fillStyle = "#1a1a1a";
+  ctx.beginPath();
+  ctx.arc(24, -8, 16, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#333333";
+  ctx.beginPath();
+  ctx.arc(24, -8, 10, 0, Math.PI * 2);
+  ctx.fill();
+  for (let i = 0; i < 4; i++) {
+    const a = spin + (i * Math.PI) / 2;
+    ctx.beginPath();
+    ctx.moveTo(24, -8);
+    ctx.lineTo(24 + Math.cos(a) * 9, -8 + Math.sin(a) * 9);
+    ctx.stroke();
+  }
+  // deck
+  roundRect(ctx, -26, -22, 52, 8, 4, "#222222");
+  // body
+  roundRect(ctx, -14, -34, 30, 16, 6, "#1a1a1a");
+  roundRect(ctx, -12, -32, 26, 12, 5, "#2a2a2a");
+  // seat
+  roundRect(ctx, -20, -40, 22, 8, 4, "#0d0d0d");
+  // handlebar stem
+  ctx.strokeStyle = "#1a1a1a";
+  ctx.lineWidth = 4;
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(18, -30);
+  ctx.lineTo(24, -48);
+  ctx.stroke();
+  // handlebar
+  ctx.lineWidth = 5;
+  ctx.beginPath();
+  ctx.moveTo(16, -50);
+  ctx.lineTo(32, -50);
+  ctx.stroke();
+  // headlight
+  ellipse(ctx, 26, -44, 4, 4, "#ffe9a0");
+
+  // player sitting on scooty — legs positioned on footboard
+  const bob = moving ? Math.abs(Math.sin(t * 8)) * 1.5 : Math.sin(t * 2) * 0.6;
+  ctx.translate(0, -bob);
+  // legs (sitting, feet on deck)
+  roundRect(ctx, -18, -22, 10, 14, 4, "#4b3f6b");
+  roundRect(ctx, 6, -22, 10, 14, 4, "#584a7e");
+  // shoes on footboard
+  roundRect(ctx, -20, -12, 12, 6, 3, "#2f2745");
+  roundRect(ctx, 6, -12, 12, 6, 3, "#2f2745");
+  // body (sitting upright)
+  roundRect(ctx, -15, -54, 30, 34, 12, "#f2f2fa");
+  roundRect(ctx, -15, -42, 30, 22, 10, "#cbb7f2");
+  // arms reaching to handlebar
+  roundRect(ctx, 10, -48, 8, 18, 4, "#f7d9c4");
+  roundRect(ctx, -18, -50, 8, 14, 4, "#f7d9c4");
+  // head
+  ellipse(ctx, 0, -68, 17, 17, "#f7d9c4");
+  // hair
+  ctx.beginPath();
+  ctx.ellipse(0, -76, 18, 15, 0, Math.PI, 0);
+  ctx.fillStyle = "#3b2f4d";
+  ctx.fill();
+  ellipse(ctx, -14, -68, 6, 12, "#3b2f4d");
+  ellipse(ctx, 14, -68, 6, 12, "#3b2f4d");
+  // face
+  if (dir !== "up") {
+    ellipse(ctx, -6, -66, 2.4, 3, "#2f2745");
+    ellipse(ctx, 6, -66, 2.4, 3, "#2f2745");
+    ellipse(ctx, -10, -61, 3.4, 2.4, "#f7b7c2");
+    ellipse(ctx, 10, -61, 3.4, 2.4, "#f7b7c2");
+    ctx.strokeStyle = "#a56a63";
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.arc(0, -62, 4, 0.15 * Math.PI, 0.85 * Math.PI);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+
+  // Pillow sitting behind player on the scooty
+  ctx.save();
+  ctx.translate(x - 30 * flip, y - 6);
+  ctx.scale(flip, 1);
+  // cat body sitting
+  ellipse(ctx, 0, -18, 16, 11, "#ffffff");
+  // head
+  ellipse(ctx, -10, -28, 11, 10, "#ffffff");
+  // ears
+  ctx.beginPath();
+  ctx.moveTo(-18, -33);
+  ctx.lineTo(-15, -42);
+  ctx.lineTo(-11, -34);
+  ctx.closePath();
+  ctx.fillStyle = "#ffffff";
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(-8, -35);
+  ctx.lineTo(-4, -43);
+  ctx.lineTo(-1, -35);
+  ctx.closePath();
+  ctx.fill();
+  // eyes
+  ellipse(ctx, -14, -29, 2, 2.6, "#3b3546");
+  ellipse(ctx, -7, -29, 2, 2.6, "#3b3546");
+  ellipse(ctx, -11, -25, 2.2, 1.6, "#f2a3b8");
+  // tail hanging
+  ctx.strokeStyle = "#ffffff";
+  ctx.lineWidth = 5;
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(12, -16);
+  ctx.quadraticCurveTo(20, -10 + Math.sin(t * 3) * 4, 16, -2 + Math.sin(t * 3) * 3);
+  ctx.stroke();
+  ctx.restore();
+
+  drawNameTag(ctx, x, y - 100, name, "rgba(45,32,64,0.72)", "#ffffff");
 }
 
 export function drawCat(
@@ -499,8 +912,8 @@ export function drawCat(
       ctx.textBaseline = "middle";
       const zx = x + 26 + p * 26 + Math.sin(p * 6 + i) * 6;
       const zy = y - 40 - p * 60;
-      ctx.strokeText("Z", zx, zy);
-      ctx.fillText("Z", zx, zy);
+      ctx.strokeText("z", zx, zy);
+      ctx.fillText("z", zx, zy);
       ctx.globalAlpha = 1;
     }
   }

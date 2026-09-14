@@ -4,12 +4,13 @@ import {
   CLOUDS,
   COTTAGE,
   DOOR,
-  ENVELOPE,
   EXIT_DOOR,
   INDOOR,
   INDOOR_SPAWN,
   OUTDOOR,
   SKY_H,
+  SCOOTY,
+  TALHA,
   buildProps,
   clamp,
 } from "@/game/world";
@@ -17,17 +18,20 @@ import {
   drawCat,
   drawCloud,
   drawCottage,
-  drawEnvelope,
   drawGround,
   drawInterior,
   drawPlayer,
+  drawPlayerOnScooty,
   drawProp,
+  drawScooty,
   drawSky,
+  drawTalha,
 } from "@/game/sprites";
 
 const PLAYER_SPEED = 205;
+const SCOOTY_SPEED = 340;
 const CAT_SPEED = 245;
-const IDLE_SLEEP = 10; // seconds
+const IDLE_SLEEP = 10;
 
 interface Props {
   name: string;
@@ -36,7 +40,8 @@ interface Props {
   paused: boolean;
   onDoor: () => void;
   onExit: () => void;
-  onEnvelopeNear: (near: boolean) => void;
+  onTalhaNear: (near: boolean) => void;
+  ridingRef: React.RefObject<boolean>;
 }
 
 const props = buildProps();
@@ -48,7 +53,8 @@ export default function GameCanvas({
   paused,
   onDoor,
   onExit,
-  onEnvelopeNear,
+  onTalhaNear,
+  ridingRef,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const player = useRef<Actor>({ x: 420, y: 1050, dir: "right", walkT: 0, moving: false });
@@ -65,13 +71,16 @@ export default function GameCanvas({
   const lastPlayerPosition = useRef({ x: 420, y: 1050 });
   const keys = useRef<Record<string, boolean>>({});
   const lockout = useRef(0);
-  const nearEnv = useRef(false);
+  const nearTalha = useRef(false);
   const inDoorZone = useRef(true);
   const sceneRef = useRef<Scene>(scene);
   const pausedRef = useRef(paused);
+  const riding = useRef(false);
   pausedRef.current = paused;
 
-  // place actors when the scene changes (the meadow spawn is kept on first mount)
+  // sync riding state from parent
+  riding.current = ridingRef.current;
+
   const lastScene = useRef<Scene | null>(null);
   useEffect(() => {
     sceneRef.current = scene;
@@ -152,6 +161,9 @@ export default function GameCanvas({
       const world = sc === "outdoor" ? OUTDOOR : INDOOR;
       if (lockout.current > 0) lockout.current -= dt;
 
+      // sync riding state
+      riding.current = ridingRef.current;
+
       /* ---- input ---- */
       let ix = inputRef.current?.x ?? 0;
       let iy = inputRef.current?.y ?? 0;
@@ -174,10 +186,11 @@ export default function GameCanvas({
 
       /* ---- player ---- */
       const p = player.current;
+      const speed = riding.current ? SCOOTY_SPEED : PLAYER_SPEED;
       p.moving = mag > 0.08;
       if (p.moving) {
-        p.x += ix * PLAYER_SPEED * mag * dt;
-        p.y += iy * PLAYER_SPEED * mag * dt;
+        p.x += ix * speed * mag * dt;
+        p.y += iy * speed * mag * dt;
         p.walkT += dt;
         const dir: Dir =
           Math.abs(ix) > Math.abs(iy) ? (ix > 0 ? "right" : "left") : iy > 0 ? "down" : "up";
@@ -191,7 +204,7 @@ export default function GameCanvas({
       p.x = clamp(p.x, 40, world.w - 40);
       p.y = clamp(p.y, topLimit, world.h - (sc === "outdoor" ? 40 : 30));
 
-      // Inactivity is based on real position changes, not merely input state.
+      // Inactivity based on real position changes
       const movedDistance = Math.hypot(
         p.x - lastPlayerPosition.current.x,
         p.y - lastPlayerPosition.current.y,
@@ -239,10 +252,10 @@ export default function GameCanvas({
           onExit();
         }
         inDoorZone.current = atExit;
-        const near = Math.hypot(p.x - ENVELOPE.x, p.y - (ENVELOPE.y + 90)) < ENVELOPE.r + 40;
-        if (near !== nearEnv.current) {
-          nearEnv.current = near;
-          onEnvelopeNear(near);
+        const near = Math.hypot(p.x - TALHA.x, p.y - TALHA.y) < TALHA.r;
+        if (near !== nearTalha.current) {
+          nearTalha.current = near;
+          onTalhaNear(near);
         }
       }
 
@@ -260,9 +273,10 @@ export default function GameCanvas({
         const d = Math.hypot(dx, dy);
         const target = settling ? 7 : followDist;
         if (d > target) {
-          const speed = Math.min(CAT_SPEED, 90 + (d - target) * 3.2);
-          c.x += (dx / d) * speed * dt;
-          c.y += (dy / d) * speed * dt;
+          const catSpeed = riding.current ? CAT_SPEED + 120 : CAT_SPEED;
+          const speed2 = Math.min(catSpeed, 90 + (d - target) * 3.2);
+          c.x += (dx / d) * speed2 * dt;
+          c.y += (dy / d) * speed2 * dt;
           c.moving = true;
           c.walkT += dt;
           c.dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : dy > 0 ? "down" : "up";
@@ -314,17 +328,37 @@ export default function GameCanvas({
           drawn.push({ y: pr.y, fn: () => drawProp(ctx, pr, t) });
         }
         drawn.push({ y: COTTAGE.y + COTTAGE.h / 2, fn: () => drawCottage(ctx, t) });
-        drawn.push({
-          y: c.y,
-          fn: () => drawCat(ctx, c.x, c.y, c.dir, c.walkT, c.moving, c.sleeping, t),
-        });
-        drawn.push({ y: p.y, fn: () => drawPlayer(ctx, p.x, p.y, p.dir, p.walkT, p.moving, name) });
+
+        // scooty: drawn separately if player is not riding
+        if (!riding.current) {
+          drawn.push({ y: SCOOTY.y, fn: () => drawScooty(ctx, SCOOTY.x, SCOOTY.y, "right", t, false) });
+        }
+
+        // player (riding or walking)
+        if (riding.current) {
+          drawn.push({
+            y: p.y,
+            fn: () => drawPlayerOnScooty(ctx, p.x, p.y, p.dir, name, t, p.moving),
+          });
+        } else {
+          drawn.push({ y: p.y, fn: () => drawPlayer(ctx, p.x, p.y, p.dir, p.walkT, p.moving, name) });
+        }
+
+        // cat follows on foot (not on scooty)
+        if (!riding.current) {
+          drawn.push({
+            y: c.y,
+            fn: () => drawCat(ctx, c.x, c.y, c.dir, c.walkT, c.moving, c.sleeping, t),
+          });
+        }
+
         drawn.sort((a, b) => a.y - b.y);
         for (const d of drawn) d.fn();
       } else {
         drawInterior(ctx, t);
+
         const items: Array<{ y: number; fn: () => void }> = [
-          { y: ENVELOPE.y + 30, fn: () => drawEnvelope(ctx, t) },
+          { y: TALHA.y, fn: () => drawTalha(ctx, TALHA.x, TALHA.y, t) },
           { y: c.y, fn: () => drawCat(ctx, c.x, c.y, c.dir, c.walkT, c.moving, c.sleeping, t) },
           { y: p.y, fn: () => drawPlayer(ctx, p.x, p.y, p.dir, p.walkT, p.moving, name) },
         ];
@@ -340,7 +374,7 @@ export default function GameCanvas({
       window.removeEventListener("resize", resize);
       window.removeEventListener("orientationchange", resize);
     };
-  }, [name, inputRef, onDoor, onExit, onEnvelopeNear]);
+  }, [name, inputRef, onDoor, onExit, onTalhaNear, ridingRef]);
 
   return <canvas ref={canvasRef} className="block h-full w-full touch-none" />;
 }

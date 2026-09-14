@@ -11,7 +11,12 @@ export const DOOR = { x: COTTAGE.x, y: COTTAGE.y + 150, r: 70 };
 export const INDOOR_SPAWN = { x: INDOOR.w / 2, y: INDOOR.h - 140 };
 export const EXIT_DOOR = { x: INDOOR.w / 2, y: INDOOR.h - 40, r: 70 };
 export const TABLE = { x: INDOOR.w / 2, y: 430, w: 320, h: 130 };
-export const ENVELOPE = { x: INDOOR.w / 2 + 70, y: 400, r: 110 };
+
+// Talha kneels near the table, holding the letter
+export const TALHA = { x: INDOOR.w / 2, y: 470, r: 120 };
+
+// Scooty parked near the player spawn in the outdoor area
+export const SCOOTY = { x: 560, y: 1060, r: 60 };
 
 function mulberry(seed: number) {
   let a = seed;
@@ -35,6 +40,7 @@ export function buildProps(): Prop[] {
     const x = 120 + rnd() * (OUTDOOR.w - 240);
     const y = top + rnd() * (OUTDOOR.h - top - 80);
     if (Math.abs(x - COTTAGE.x) < 420 && Math.abs(y - COTTAGE.y) < 380) continue;
+    if (Math.abs(x - SCOOTY.x) < 120 && Math.abs(y - SCOOTY.y) < 100) continue;
     props.push({ kind: "tree", x, y, s: 0.85 + rnd() * 0.5 });
   }
   for (let i = 0; i < 14; i++) {

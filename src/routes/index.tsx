@@ -36,10 +36,12 @@ function Game() {
   const [phase, setPhase] = useState<Phase>("intro");
   const [name, setName] = useState("Guest");
   const [scene, setScene] = useState<Scene>("outdoor");
-  const [nearEnvelope, setNearEnvelope] = useState(false);
+  const [nearTalha, setNearTalha] = useState(false);
   const [letterOpen, setLetterOpen] = useState(false);
   const [wipe, setWipe] = useState(false);
+  const [riding, setRiding] = useState(false);
   const inputRef = useRef({ x: 0, y: 0 });
+  const ridingRef = useRef(false);
 
   const start = useCallback((n: string) => {
     setName(n);
@@ -51,19 +53,31 @@ function Game() {
     setWipe(true);
     window.setTimeout(() => {
       setScene(next);
-      setNearEnvelope(false);
+      setNearTalha(false);
+      setRiding(false);
+      ridingRef.current = false;
       window.setTimeout(() => setWipe(false), 60);
     }, 420);
   }, []);
 
   const onDoor = useCallback(() => changeScene("indoor"), [changeScene]);
   const onExit = useCallback(() => changeScene("outdoor"), [changeScene]);
-  const onEnvelopeNear = useCallback((near: boolean) => setNearEnvelope(near), []);
+  const onTalhaNear = useCallback((near: boolean) => setNearTalha(near), []);
+
+  const toggleRide = useCallback(() => {
+    setRiding((r) => {
+      const next = !r;
+      ridingRef.current = next;
+      return next;
+    });
+  }, []);
 
   const replay = useCallback(() => {
     setLetterOpen(false);
     setScene("outdoor");
-    setNearEnvelope(false);
+    setNearTalha(false);
+    setRiding(false);
+    ridingRef.current = false;
     setPhase("intro");
   }, []);
 
@@ -81,7 +95,8 @@ function Game() {
               paused={letterOpen || phase === "quest"}
               onDoor={onDoor}
               onExit={onExit}
-              onEnvelopeNear={onEnvelopeNear}
+              onTalhaNear={onTalhaNear}
+              ridingRef={ridingRef}
             />
           </div>
 
@@ -89,18 +104,18 @@ function Game() {
           <div className="pointer-events-none absolute inset-x-0 top-0 flex flex-col items-center gap-2 px-4 pt-5">
             {scene === "outdoor" && (
               <p className="rounded-full bg-black/35 px-4 py-2 text-center text-xs text-white/85 backdrop-blur-sm">
-                Walk to the cottage on the right
+                Head right to the cottage
               </p>
             )}
-            {scene === "indoor" && !nearEnvelope && (
+            {scene === "indoor" && !nearTalha && (
               <p className="rounded-full bg-black/35 px-4 py-2 text-center text-xs text-white/85 backdrop-blur-sm">
-                Something is waiting for you...
+                Walk up to Talha
               </p>
             )}
           </div>
 
-          {/* envelope prompt */}
-          {scene === "indoor" && nearEnvelope && !letterOpen && (
+          {/* Talha / letter prompt */}
+          {scene === "indoor" && nearTalha && !letterOpen && (
             <div className="absolute inset-x-0 bottom-56 flex justify-center px-6">
               <button
                 onClick={() => setLetterOpen(true)}
@@ -110,6 +125,21 @@ function Game() {
                 Tap the letter
               </button>
             </div>
+          )}
+
+          {/* scooty toggle button */}
+          {scene === "outdoor" && !letterOpen && phase === "playing" && (
+            <button
+              onClick={toggleRide}
+              className={`pointer-events-auto absolute right-6 bottom-10 z-20 flex h-16 w-16 items-center justify-center rounded-full border-2 text-xs font-bold backdrop-blur-sm transition-all active:scale-90 ${
+                riding
+                  ? "border-amber-300 bg-amber-500/80 text-white"
+                  : "border-white/30 bg-white/15 text-white/80"
+              }`}
+              aria-label={riding ? "Get off scooty" : "Ride scooty"}
+            >
+              {riding ? "OFF" : "RIDE"}
+            </button>
           )}
 
           {/* joystick */}
