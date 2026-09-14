@@ -4,7 +4,7 @@ import {
   CLOUDS,
   COTTAGE,
   DOOR,
-  TALHA,
+  ENVELOPE,
   EXIT_DOOR,
   INDOOR,
   INDOOR_SPAWN,
@@ -19,7 +19,7 @@ import {
   drawCatRiding,
   drawCloud,
   drawCottage,
-  drawTalha,
+  drawEnvelope,
   drawGround,
   drawInterior,
   drawPlayer,
@@ -304,7 +304,7 @@ export default function GameCanvas({
           onExit();
         }
         inDoorZone.current = atExit;
-        const near = Math.hypot(p.x - TALHA.x, p.y - (TALHA.y + 60)) < TALHA.r;
+        const near = Math.hypot(p.x - ENVELOPE.x, p.y - (ENVELOPE.y + 60)) < ENVELOPE.r;
         if (near !== nearEnv.current) {
           nearEnv.current = near;
           onTalhaNear(near);
@@ -416,7 +416,7 @@ export default function GameCanvas({
       } else {
         drawInterior(ctx, t);
         const items: Array<{ y: number; fn: () => void }> = [
-          { y: TALHA.y + 30, fn: () => drawTalha(ctx, t) },
+          { y: ENVELOPE.y, fn: () => drawEnvelope(ctx, t) },
           { y: c.y, fn: () => drawCat(ctx, c.x, c.y, c.dir, c.walkT, c.moving, c.sleeping, t) },
           { y: p.y, fn: () => drawPlayer(ctx, p.x, p.y, p.dir, p.walkT, p.moving, name) },
         ];
